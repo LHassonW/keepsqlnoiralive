@@ -1,27 +1,16 @@
-name: Noir Website Keep Alive
+name: Keep Noir Website Alive
 
 on:
   schedule:
-    # Runs every day at 02:00 UTC
-    - cron: '0 2 * * *'
-  workflow_dispatch: # Allows you to run it manually to test
+    # Runs every day at 5:00 AM UTC
+    - cron: '0 5 * * *'
+  workflow_dispatch: # Allows you to test it manually
 
 jobs:
-  keep_alive:
+  ping_site:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Playwright
+      - name: Visit Noir Website
         run: |
-          npm install playwright
-          npx playwright install chromium --with-deps
-
-      - name: Execute Visit
-        run: node keep_alive_noir.js
+          curl -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36" -L https://noir.great-site.net/
+          echo "✅ Visit successful. InfinityFree logs updated."
