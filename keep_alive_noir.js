@@ -3,24 +3,24 @@ const { chromium } = require('playwright');
 (async () => {
   const browser = await chromium.launch();
   const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   });
   const page = await context.newPage();
 
   try {
-    console.log('🌐 Visiting noir.great-site.net to reset inactivity timer...');
+    console.log('🌐 Visiting noir.great-site.net...');
     
-    // CHANGE: Use 'domcontentloaded' instead of 'networkidle'
-    // This triggers as soon as the HTML is ready, which is safer for InfinityFree
+    // 'commit' triggers the second the server responds.
+    // We bump the timeout to 120 seconds to survive server "hiccups."
     await page.goto('https://noir.great-site.net', { 
-      waitUntil: 'domcontentloaded', 
-      timeout: 90000 // Increased to 90 seconds
+      waitUntil: 'commit', 
+      timeout: 120000 
     });
 
-    // We keep this to make sure the server registers the hit
+    // Wait 5 seconds to ensure the hit is registered in the server logs
     await page.waitForTimeout(5000); 
     
-    console.log('✅ Visit confirmed. Page title:', await page.title());
+    console.log('✅ Visit attempt finished. Current URL:', page.url());
   } catch (error) {
     console.error('❌ Visit failed:', error.message);
     process.exit(1);
