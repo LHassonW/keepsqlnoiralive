@@ -2,15 +2,36 @@ name: Keep Noir Website Alive
 
 on:
   schedule:
-    # Runs every day at 5:00 AM UTC
-    - cron: '0 5 * * *'
-  workflow_dispatch: # Allows you to test it manually
+    - cron: '0 5 * * *' # Runs daily at 5:00 AM UTC
+  workflow_dispatch:
 
 jobs:
   ping_site:
     runs-on: ubuntu-latest
     steps:
-      - name: Visit Noir Website
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Visit via Curl (With Retries)
         run: |
-          curl -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36" -L https://noir.great-site.net/
-          echo "✅ Visit successful. InfinityFree logs updated."
+          # --retry 5: If the server is "down," try 5 more times automatically
+          # --retry-delay 15: Wait 15 seconds between tries
+          # --connect-timeout 60: Allow more time for the slow free server to wake up
+          curl -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/121.0.0.0" \
+               --retry 5 \
+               --retry-delay 15 \
+               --connect-timeout 60 \
+               -L https://noir.great-site.net/
+          echo "✅ Curl visit attempt finished."
+
+      - name: Run Visit via Playwright (Backup)
+        # This only runs if you have the .js file in your repo
+        run: |
+          npm install playwright
+          npx playwright install chromium --with-deps
+          node keep_alive_noir.js
