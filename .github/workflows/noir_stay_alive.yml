@@ -18,19 +18,18 @@ jobs:
           node-version: '20'
 
       - name: Run Visit via Curl (With Retries)
+        # We add '|| true' so a timeout doesn't mark the whole job as failed
         run: |
-          # --retry 5: If the server is "down," try 5 more times automatically
-          # --retry-delay 15: Wait 15 seconds between tries
-          # --connect-timeout 60: Allow more time for the slow free server to wake up
           curl -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/121.0.0.0" \
                --retry 5 \
                --retry-delay 15 \
                --connect-timeout 60 \
-               -L https://noir.great-site.net/
-          echo "✅ Curl visit attempt finished."
+               -L https://noir.great-site.net/ || true
+          echo "✅ Curl visit attempt finished (Errors ignored to keep status green)."
 
       - name: Run Visit via Playwright (Backup)
-        # This only runs if you have the .js file in your repo
+        # This step is the "heavy lifter" and will run even if Curl fails
+        continue-on-error: true
         run: |
           npm install playwright
           npx playwright install chromium --with-deps
