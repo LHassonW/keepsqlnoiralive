@@ -2,7 +2,7 @@ name: Keep Noir Website Alive
 
 on:
   schedule:
-    - cron: '0 5 * * *' # Runs daily at 5:00 AM UTC
+    - cron: '0 5 * * *'
   workflow_dispatch:
 
 jobs:
@@ -17,20 +17,22 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run Visit via Curl (With Retries)
-        # We add '|| true' so a timeout doesn't mark the whole job as failed
-        run: |
-          curl -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/121.0.0.0" \
-               --retry 5 \
-               --retry-delay 15 \
-               --connect-timeout 60 \
-               -L https://noir.great-site.net/ || true
-          echo "✅ Curl visit attempt finished (Errors ignored to keep status green)."
-
-      - name: Run Visit via Playwright (Backup)
-        # This step is the "heavy lifter" and will run even if Curl fails
-        continue-on-error: true
+      - name: Run Visit
+        id: visit
         run: |
           npm install playwright
           npx playwright install chromium --with-deps
-          node keep_alive_noir.js
+          # Run the script and capture the output
+          node keep_alive_noir.js > output.log 2>&1 || true
+          cat output.log
+          
+          # Check if the log contains the failure message we defined
+          if grep -q "ALARM: SITE IS DOWN" output.log; then
+            echo "RESULT=🚨 FAILED BUT MARKED SUCCESS" >> $GITHUB_ENV
+          else
+            echo "RESULT=✅ ACTUAL SUCCESS" >> $GITHUB_ENV
+          fi
+
+      - name: Summary Report
+        run: |
+          echo "Run Result: ${{ env.RESULT }}"
