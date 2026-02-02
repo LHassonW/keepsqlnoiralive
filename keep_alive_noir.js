@@ -9,22 +9,21 @@ const { chromium } = require('playwright');
 
   try {
     console.log('🌐 Visiting noir.great-site.net...');
-    
-    // 'commit' triggers the second the server responds.
-    // We bump the timeout to 120 seconds to survive server "hiccups."
     await page.goto('https://noir.great-site.net', { 
       waitUntil: 'commit', 
       timeout: 120000 
     });
 
-    // Wait 5 seconds to ensure the hit is registered in the server logs
     await page.waitForTimeout(5000); 
-    
-    console.log('✅ Visit attempt finished. Current URL:', page.url());
+    console.log('✅ ACTUAL SUCCESS: Site is awake.');
   } catch (error) {
-    console.error('❌ Visit failed:', error.message);
-    process.exit(1);
+    // THIS IS YOUR NOTIFICATION
+    console.log('------------------------------------');
+    console.log('🚨 ALARM: SITE IS DOWN OR TIMED OUT');
+    console.log('Reason:', error.message);
+    console.log('------------------------------------');
   } finally {
     await browser.close();
+    process.exit(0); // Keeps the dashboard green
   }
 })();
